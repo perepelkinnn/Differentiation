@@ -1,94 +1,54 @@
-class Sum:
+class Node:
+    def __init__(self, left, right, parent=None):
+        self.left = left
+        self.right = right
+
+
+class Sum(Node):
     def __init__(self, u, v):
-        self.u = u
-        self.v = v
+        super().__init__(u, v)
 
     def __str__(self):
-        if type(self.u) is Zero and type(self.v) is Zero:
-            return '{}'.format(0)
-        elif type(self.u) is Zero:
-            return '{}'.format(self.v)
-        elif type(self.v) is Zero:
-            return '{}'.format(self.u)
-        if type(self.u) is Const and type(self.v) is Const:
-            return '{}'.format(self.u.value + self.v.value)
-        return '({}+{})'.format(self.u, self.v)
+        return '{}+{}'.format(self.left, self.right)
 
     def diff(self):
-        return Sum(self.u.diff(), self.v.diff())
+        return Sum(self.left.diff(), self.right.diff())
 
 
-class Sub:
+class Sub(Node):
     def __init__(self, u, v):
-        self.u = u
-        self.v = v
+        super().__init__(u, v)
 
     def __str__(self):
-        if type(self.u) is Zero and type(self.v) is Zero:
-            return '{}'.format(0)
-        elif type(self.u) is Zero:
-            return '(-{})'.format(self.v)
-        elif type(self.v) is Zero:
-            return '{}'.format(self.u)
-        if type(self.u) is Const and type(self.v) is Const:
-            return '{}'.format(self.u.value - self.v.value)
-        return '({}-{})'.format(self.u, self.v)
+        return '{}-{}'.format(self.left, self.right)
 
     def diff(self):
-        return Sub(self.u.diff(), self.v.diff())
+        return Sub(self.left.diff(), self.right.diff())
 
 
-class Mul:
+class Mul(Node):
     def __init__(self, u, v):
-        self.u = u
-        self.v = v
+        super().__init__(u, v)
 
     def __str__(self):
-        if type(self.u) is Zero or type(self.v) is Zero:
-            return '{}'.format(0)
-        if type(self.u) is Const and type(self.v) is Const:
-            return '{}'.format(self.u.value * self.v.value)
-        elif type(self.u) is Const:
-            return '{}{}'.format(self.u, self.v)
-        elif type(self.v) is Const:
-            return '{}{}'.format(self.v, self.u)
-        return '({}*{})'.format(self.u, self.v)
+        return '{}*{}'.format(self.left, self.right)
 
     def diff(self):
-        return Sum(Mul(self.u.diff(), self.v), Mul(self.u, self.v.diff()))
+        return Sum(Mul(self.left.diff(), self.right), Mul(self.left, self.right.diff()))
 
 
-class Div:
+class Div(Node):
     def __init__(self, u, v):
-        if type(v) is Zero:
-            raise ZeroDivisionError
-        self.u = u
-        self.v = v
+        super().__init__(u, v)
 
     def __str__(self):
-        if type(self.u) is Zero:
-            return '{}'.format(0)
-        if type(self.u) is Const and type(self.v) is Const:
-            return '{}'.format(self.u.value / self.v.value)
-        elif type(self.u) is Const:
-            return '{}/({})'.format(self.u, self.v)
-        elif type(self.v) is Const:
-            return '({})/{}'.format(self.u, self.v)
-        return '(({})/({}))'.format(self.u, self.v)
+        return '{}/{}'.format(self.left, self.right)
 
     def diff(self):
         return Div(Sub(
-            Mul(self.u.diff(), self.v),
-            Mul(self.u, self.v.diff())),
-            Mul(self.v, self.v))
-
-
-class Zero:
-    def __str__(self):
-        return '{}'.format(0)
-
-    def diff(self):
-        return Zero()
+            Mul(self.left.diff(), self.right),
+            Mul(self.left, self.right.diff())),
+            Mul(self.right, self.right))
 
 
 class Const:
@@ -99,11 +59,11 @@ class Const:
         return '{}'.format(self.value)
 
     def diff(self):
-        return Zero()
+        return Const(0)
 
 
 class Varriable:
-    def __init__(self, char):
+    def __init__(self, char='x'):
         self.char = char
 
     def __str__(self):
@@ -115,41 +75,34 @@ class Varriable:
 
 class PowerFunc:
     def __init__(self, power, arg):
-        self.arg = arg
         self.power = power
+        self.arg = arg
 
     def __str__(self):
         return '{}^{}'.format(self.arg, self.power)
 
     def diff(self):
-        if type(self.arg) is Zero or type(self.arg) is Const:
-            return Zero()
-        if type(self.arg) is Varriable:
-            return Mul(Const(self.power),
-                       PowerFunc(self.power - 1,  self.arg))
-        return Mul(Mul(
-            Const(self.power),
-            PowerFunc(self.power - 1,  self.arg)),
-            self.arg.diff())
+        if type(self.arg) is Const:
+            return Const(0)
+        return Mul(Const(self.power),
+                   PowerFunc(self.power - 1,  self.arg))
 
 
 class ExponentFunc:
     def __init__(self, base, arg):
-        self.arg = arg
         self.base = base
+        self.arg = arg
 
     def __str__(self):
         return '{}^{}'.format(self.base, self.arg)
 
     def diff(self):
-        if type(self.arg) is Zero or type(self.arg) is Const:
-            return Zero()
-        if type(self.arg) is Varriable:
-            return Mul(self, ln(self.base))
-        return Mul(Mul(self, self.arg.diff()), ln(Const(self.base)))
+        if type(self.arg) is Const:
+            return Const(0)
+        return Mul(self, Ln(self.base))
 
 
-class ln:
+class Ln:
     def __init__(self, arg):
         self.arg = arg
 
@@ -157,14 +110,12 @@ class ln:
         return 'ln{}'.format(self.arg)
 
     def diff(self):
-        if type(self.arg) is Zero or type(self.arg) is Const:
-            return Zero()
-        if type(self.arg) is Varriable:
-            return Div(Const(1), self.arg)
-        return Div(self.arg.diff(), self.arg)
+        if type(self.arg) is Const:
+            return Const(0)
+        return Div(Const(1), self.arg)
 
 
-class sin:
+class Sin:
     def __init__(self, arg):
         self.arg = arg
 
@@ -172,14 +123,12 @@ class sin:
         return 'sin{}'.format(self.arg)
 
     def diff(self):
-        if type(self.arg) is Zero or type(self.arg) is Const:
-            return Zero()
-        if type(self.arg) is Varriable:
-            return cos(self.arg)
-        return Mul(cos(self.arg), self.arg.diff())
+        if type(self.arg) is Const:
+            return Const(0)
+        return Cos(self.arg)
 
 
-class cos:
+class Cos:
     def __init__(self, arg):
         self.arg = arg
 
@@ -187,8 +136,17 @@ class cos:
         return 'cos{}'.format(self.arg)
 
     def diff(self):
-        if type(self.arg) is Zero or type(self.arg) is Const:
-            return Zero()
-        if type(self.arg) is Varriable:
-            return Mul(Const(-1), sin(self.arg))
-        return Mul(Mul(Const(-1), sin(self.arg)), self.arg.diff())
+        if type(self.arg) is Const:
+            return Const(0)
+        return Mul(Const(-1), Sin(self.arg))
+
+
+class ComplexFunc:
+    def __init__(self, func):
+        self.func = func
+
+    def __str__(self):
+        return '{}'.format(self.func)
+
+    def diff(self):
+        return Mul(self.func.diff(), self.func.arg.diff())
