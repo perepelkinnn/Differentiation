@@ -1,7 +1,4 @@
-class Node:
-    def __init__(self, left, right, parent=None):
-        self.left = left
-        self.right = right
+from tree import Node
 
 
 class Sum(Node):
@@ -9,7 +6,7 @@ class Sum(Node):
         super().__init__(u, v)
 
     def __str__(self):
-        return '{}+{}'.format(self.left, self.right)
+        return '({}+{})'.format(self.left, self.right)
 
     def diff(self):
         return Sum(self.left.diff(), self.right.diff())
@@ -20,7 +17,7 @@ class Sub(Node):
         super().__init__(u, v)
 
     def __str__(self):
-        return '{}-{}'.format(self.left, self.right)
+        return '({}-{})'.format(self.left, self.right)
 
     def diff(self):
         return Sub(self.left.diff(), self.right.diff())
@@ -31,7 +28,7 @@ class Mul(Node):
         super().__init__(u, v)
 
     def __str__(self):
-        return '{}*{}'.format(self.left, self.right)
+        return '({}*{})'.format(self.left, self.right)
 
     def diff(self):
         return Sum(Mul(self.left.diff(), self.right), Mul(self.left, self.right.diff()))
@@ -42,7 +39,7 @@ class Div(Node):
         super().__init__(u, v)
 
     def __str__(self):
-        return '{}/{}'.format(self.left, self.right)
+        return '({}/{})'.format(self.left, self.right)
 
     def diff(self):
         return Div(Sub(
@@ -79,7 +76,7 @@ class PowerFunc:
         self.arg = arg
 
     def __str__(self):
-        return '{}^{}'.format(self.arg, self.power)
+        return '({})^({})'.format(self.arg, self.power)
 
     def diff(self):
         if type(self.arg) is Const:
@@ -94,7 +91,7 @@ class ExponentFunc:
         self.arg = arg
 
     def __str__(self):
-        return '{}^{}'.format(self.base, self.arg)
+        return '({})^({})'.format(self.base, self.arg)
 
     def diff(self):
         if type(self.arg) is Const:
@@ -107,7 +104,7 @@ class Ln:
         self.arg = arg
 
     def __str__(self):
-        return 'ln{}'.format(self.arg)
+        return 'ln({})'.format(self.arg)
 
     def diff(self):
         if type(self.arg) is Const:
@@ -120,7 +117,7 @@ class Sin:
         self.arg = arg
 
     def __str__(self):
-        return 'sin{}'.format(self.arg)
+        return 'sin({})'.format(self.arg)
 
     def diff(self):
         if type(self.arg) is Const:
@@ -133,7 +130,7 @@ class Cos:
         self.arg = arg
 
     def __str__(self):
-        return 'cos{}'.format(self.arg)
+        return 'cos({})'.format(self.arg)
 
     def diff(self):
         if type(self.arg) is Const:
